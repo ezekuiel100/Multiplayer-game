@@ -1,3 +1,7 @@
+body {
+  background-color: #eee;
+}
+
 #main {
   display: flex;
   justify-content: center;
@@ -5,5 +9,6 @@
 }
 
 canvas {
+  background-color: #fff;
   border: 1px solid rgb(175, 173, 173);
 }
