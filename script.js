@@ -1,14 +1,20 @@
 const canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");
+let fruitPositon = { x: 0, y: 0 };
+let frutiSize = { with: 20, height: 20 };
 
-const socket = new WebSocket("http://localhost:8080");
+const socket = new WebSocket("ws://localhost:8080");
 
 socket.addEventListener("open", (e) => {
-  socket.send("Hello server!");
+  const canvasSize = {
+    width: canvas.width - frutiSize.with,
+    height: canvas.height - frutiSize.height,
+  };
+  socket.send(JSON.stringify(canvasSize));
 });
 
 socket.addEventListener("message", (e) => {
-  console.log("Message from server ", e.data);
+  fruitPositon = JSON.parse(e.data);
 });
 
 let x = 0,
@@ -25,8 +31,10 @@ window.addEventListener("keydown", (e) => (keyboard[e.key] = true));
 window.addEventListener("keyup", (e) => (keyboard[e.key] = false));
 
 function draw() {
-  ctx.fillStyle = "orange";
   ctx.clearRect(0, 0, 500, 400);
+  drawFruit();
+
+  ctx.fillStyle = "orange";
   ctx.fillRect(x, y, 20, 20);
 
   if (keyboard.ArrowUp) {
@@ -40,6 +48,14 @@ function draw() {
   }
 }
 
-draw();
+function drawFruit() {
+  ctx.fillStyle = "green";
+  ctx.fillRect(
+    fruitPositon.x,
+    fruitPositon.y,
+    frutiSize.with,
+    frutiSize.height
+  );
+}
 
 setInterval(draw, 10);
