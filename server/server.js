@@ -1,10 +1,12 @@
 import { WebSocketServer } from "ws";
+import { nanoid } from "nanoid";
 
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on("connection", (ws) => {
   let canvasSize = { width: 0, height: 0 };
   let fruitPosition;
+  let playerId = nanoid();
   let points = 0;
   let playerPosition = { type: "playerPosition", x: 250, y: 200 };
 
@@ -20,6 +22,7 @@ wss.on("connection", (ws) => {
 
     ws.send(fruitPosition);
     ws.send(JSON.stringify(playerPosition));
+    ws.send(JSON.stringify({ type: "stats", playerId, points }));
   });
 
   fruitPosition = randomFruit();
