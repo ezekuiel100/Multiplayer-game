@@ -33,9 +33,7 @@ window.addEventListener("keyup", (e) => (keyboard[e.key] = false));
 function draw() {
   ctx.clearRect(0, 0, 500, 400);
   drawFruit();
-
-  ctx.fillStyle = "orange";
-  ctx.fillRect(x, y, 20, 20);
+  drawPlayer();
 
   if (keyboard.ArrowUp) {
     y -= 3;
@@ -46,6 +44,11 @@ function draw() {
   } else if (keyboard.ArrowRight) {
     x += 3;
   }
+}
+
+function drawPlayer() {
+  ctx.fillStyle = "orange";
+  ctx.fillRect(x, y, 20, 20);
 }
 
 function drawFruit() {
