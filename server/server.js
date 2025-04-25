@@ -16,10 +16,11 @@ wss.on("connection", (ws) => {
       playerPosition = dt;
       colision();
     }
+
+    ws.send(fruitPosition);
   });
 
   fruitPosition = randomFruit();
-  ws.send(fruitPosition);
 });
 
 function randomFruit() {
@@ -40,6 +41,7 @@ function colision() {
 
   if (isColliding) {
     points++;
+    fruitPosition = randomFruit();
   }
 }
 
