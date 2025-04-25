@@ -1,10 +1,15 @@
 const canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");
 
+const player = document.querySelector("#player");
+const points = document.querySelector("#points");
+
 let fruitPositon = { x: 0, y: 0 };
 let fruitSize = { with: 20, height: 20 };
 
 let playerPosition;
+let pt = 0;
+let start = false;
 
 const socket = new WebSocket("ws://localhost:8080");
 
@@ -27,6 +32,18 @@ socket.addEventListener("message", (e) => {
 
   if (data.type === "playerPosition") {
     playerPosition = data;
+  }
+
+  if (data.type === "stats") {
+    if (pt != data.points) {
+      handleStats(data);
+      pt++;
+    }
+
+    if (!start) {
+      handleStats(data);
+      start = true;
+    }
   }
 });
 
@@ -76,6 +93,12 @@ function keyboardInput() {
   }
 
   socket.send(JSON.stringify(playerPosition));
+}
+
+function handleStats(data) {
+  console.log(data);
+  player.innerHTML = data.playerId;
+  points.innerHTML = data.points;
 }
 
 setInterval(draw, 10);

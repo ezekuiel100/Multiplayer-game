@@ -8,9 +8,9 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "nanoid": "^5.1.5",
     "ws": "^8.18.1"
   },
-  "devDependencies": {},
   "author": "",
   "license": "ISC",
   "description": ""
