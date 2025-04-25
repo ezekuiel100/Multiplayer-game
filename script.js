@@ -34,16 +34,7 @@ function draw() {
   ctx.clearRect(0, 0, 500, 400);
   drawFruit();
   drawPlayer();
-
-  if (keyboard.ArrowUp) {
-    y -= 3;
-  } else if (keyboard.ArrowDown) {
-    y += 3;
-  } else if (keyboard.ArrowLeft) {
-    x -= 3;
-  } else if (keyboard.ArrowRight) {
-    x += 3;
-  }
+  keyboardInput();
 }
 
 function drawPlayer() {
@@ -59,6 +50,13 @@ function drawFruit() {
     frutiSize.with,
     frutiSize.height
   );
+}
+
+function keyboardInput() {
+  if (keyboard.ArrowUp) y -= 2;
+  else if (keyboard.ArrowDown) y += 2;
+  else if (keyboard.ArrowLeft) x -= 2;
+  else if (keyboard.ArrowRight) x += 2;
 }
 
 setInterval(draw, 10);
