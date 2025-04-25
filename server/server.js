@@ -4,7 +4,7 @@ const wss = new WebSocketServer({ port: 8080 });
 let canvasSize = { width: 0, height: 0 };
 let points = 0;
 let fruitPosition;
-let playerPosition;
+let playerPosition = { type: "playerPosition", x: 250, y: 200 };
 
 wss.on("connection", (ws) => {
   ws.on("message", (data) => {
@@ -18,6 +18,7 @@ wss.on("connection", (ws) => {
     }
 
     ws.send(fruitPosition);
+    ws.send(JSON.stringify(playerPosition));
   });
 
   fruitPosition = randomFruit();
@@ -27,7 +28,7 @@ function randomFruit() {
   const x = Math.ceil(Math.random() * canvasSize.width);
   const y = Math.ceil(Math.random() * canvasSize.height);
 
-  return JSON.stringify({ x, y });
+  return JSON.stringify({ type: "fruitPosition", x, y });
 }
 
 function colision() {

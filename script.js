@@ -4,6 +4,8 @@ let ctx = canvas.getContext("2d");
 let fruitPositon = { x: 0, y: 0 };
 let fruitSize = { with: 20, height: 20 };
 
+let playerPosition;
+
 const socket = new WebSocket("ws://localhost:8080");
 
 socket.addEventListener("open", (e) => {
@@ -17,11 +19,16 @@ socket.addEventListener("open", (e) => {
 });
 
 socket.addEventListener("message", (e) => {
-  fruitPositon = JSON.parse(e.data);
-});
+  const data = JSON.parse(e.data);
 
-let x = 0,
-  y = 0;
+  if (data.type === "fruitPosition") {
+    fruitPositon = data;
+  }
+
+  if (data.type === "playerPosition") {
+    playerPosition = data;
+  }
+});
 
 let keyboard = {
   ArrowUp: false,
@@ -34,15 +41,17 @@ window.addEventListener("keydown", (e) => (keyboard[e.key] = true));
 window.addEventListener("keyup", (e) => (keyboard[e.key] = false));
 
 function draw() {
-  ctx.clearRect(0, 0, 500, 400);
-  drawFruit();
-  drawPlayer();
-  keyboardInput();
+  if (socket.readyState === 1) {
+    ctx.clearRect(0, 0, 500, 400);
+    drawFruit();
+    drawPlayer();
+    // keyboardInput();
+  }
 }
 
 function drawPlayer() {
   ctx.fillStyle = "orange";
-  ctx.fillRect(x, y, 20, 20);
+  ctx.fillRect(playerPosition.x, playerPosition.y, 20, 20);
 }
 
 function drawFruit() {
@@ -56,8 +65,6 @@ function drawFruit() {
 }
 
 function keyboardInput() {
-  let data = { type: "playerPosition", x, y };
-
   if (keyboard.ArrowUp) {
     y -= 1;
   } else if (keyboard.ArrowDown) {
@@ -66,10 +73,6 @@ function keyboardInput() {
     x -= 1;
   } else if (keyboard.ArrowRight) {
     x += 1;
-  }
-
-  if (socket.readyState === 1) {
-    socket.send(JSON.stringify(data));
   }
 }
 
