@@ -45,7 +45,7 @@ function draw() {
     ctx.clearRect(0, 0, 500, 400);
     drawFruit();
     drawPlayer();
-    // keyboardInput();
+    keyboardInput();
   }
 }
 
@@ -66,14 +66,16 @@ function drawFruit() {
 
 function keyboardInput() {
   if (keyboard.ArrowUp) {
-    y -= 1;
+    playerPosition.y -= 1;
   } else if (keyboard.ArrowDown) {
-    y += 1;
+    playerPosition.y += 1;
   } else if (keyboard.ArrowLeft) {
-    x -= 1;
+    playerPosition.x -= 1;
   } else if (keyboard.ArrowRight) {
-    x += 1;
+    playerPosition.x += 1;
   }
+
+  socket.send(JSON.stringify(playerPosition));
 }
 
 setInterval(draw, 10);
