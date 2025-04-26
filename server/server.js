@@ -1,53 +1,73 @@
-import { WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import { nanoid } from "nanoid";
 
 const wss = new WebSocketServer({ port: 8080 });
 let fruitPosition;
+let canvasSize = { width: 0, height: 0 };
+let players = {};
 
 wss.on("connection", (ws) => {
-  let canvasSize = { width: 0, height: 0 };
   let playerId = nanoid();
-  let points = 0;
-  let playerPosition = { type: "playerPosition", x: 250, y: 200 };
+  ws.send(JSON.stringify({ type: "playerId", playerId }));
 
-  ws.on("message", (data) => {
-    const dt = JSON.parse(data);
+  players[playerId] = { points: 0, x: 10, y: 10 };
 
-    if (dt.type === "canvasSize") canvasSize = dt;
+  ws.on("message", (msg) => {
+    const dt = JSON.parse(msg);
 
-    if (dt.type === "playerPosition") {
-      playerPosition = dt;
-      colision();
+    if (dt.type === "canvasSize" && !canvasSize.width) canvasSize = dt;
+
+    if (!fruitPosition) {
+      fruitPosition = randomFruit();
     }
 
-    ws.send(fruitPosition);
-    ws.send(JSON.stringify(playerPosition));
-    ws.send(JSON.stringify({ type: "stats", playerId, points }));
+    ws.send(JSON.stringify(fruitPosition));
+
+    if (dt.type === "move") {
+      players[playerId].x = dt.x;
+      players[playerId].y = dt.y;
+
+      checkCollision();
+      broadcastPlayers();
+    }
   });
 
-  fruitPosition = randomFruit();
+  function broadcastPlayers() {
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: "players", players }));
+      }
+    });
+  }
+
+  broadcastPlayers();
 
   function randomFruit() {
     const x = Math.ceil(Math.random() * canvasSize.width);
     const y = Math.ceil(Math.random() * canvasSize.height);
 
-    return JSON.stringify({ type: "fruitPosition", x, y });
+    return { type: "fruitPosition", x, y };
   }
 
-  function colision() {
-    const fruit = JSON.parse(fruitPosition);
+  function checkCollision() {
+    const fruit = fruitPosition;
 
     const isColliding =
-      playerPosition.x < fruit.x + 20 &&
-      playerPosition.x + 20 > fruit.x &&
-      playerPosition.y < fruit.y + 20 &&
-      playerPosition.y + 20 > fruit.y;
+      players[playerId].x < fruit.x + 20 &&
+      players[playerId].x + 20 > fruit.x &&
+      players[playerId].y < fruit.y + 20 &&
+      players[playerId].y + 20 > fruit.y;
 
     if (isColliding) {
-      points++;
+      players[playerId].points++;
       fruitPosition = randomFruit();
     }
   }
+
+  ws.on("close", () => {
+    delete players[playerId];
+    console.log("Um jogador desconectou.");
+  });
 });
 
 console.log("Servidor WebSocket rodando em ws://localhost:8080");

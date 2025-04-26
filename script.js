@@ -3,20 +3,20 @@ let ctx = canvas.getContext("2d");
 
 const player = document.querySelector("#player");
 const points = document.querySelector("#points");
+const stats = document.querySelector(".stats");
 
-let fruitPositon = { x: 0, y: 0 };
-let fruitSize = { with: 20, height: 20 };
-
-let playerPosition;
-let pt = 0;
-let start = false;
+let fruit;
+let fruitSize = { width: 20, height: 20 };
+let playerId;
+let myPosition;
+let players;
 
 const socket = new WebSocket("ws://localhost:8080");
 
 socket.addEventListener("open", (e) => {
   const canvasSize = {
     type: "canvasSize",
-    width: canvas.width - fruitSize.with,
+    width: canvas.width - fruitSize.width,
     height: canvas.height - fruitSize.height,
   };
 
@@ -24,26 +24,19 @@ socket.addEventListener("open", (e) => {
 });
 
 socket.addEventListener("message", (e) => {
-  const data = JSON.parse(e.data);
+  const msg = JSON.parse(e.data);
 
-  if (data.type === "fruitPosition") {
-    fruitPositon = data;
+  if (msg.type === "fruitPosition") {
+    fruit = msg;
   }
 
-  if (data.type === "playerPosition") {
-    playerPosition = data;
+  if (msg.type === "playerId") {
+    playerId = msg.playerId;
   }
 
-  if (data.type === "stats") {
-    if (pt != data.points) {
-      handleStats(data);
-      pt++;
-    }
-
-    if (!start) {
-      handleStats(data);
-      start = true;
-    }
+  if (msg.type === "players") {
+    myPosition = msg.players[playerId];
+    players = msg.players;
   }
 });
 
@@ -58,47 +51,63 @@ window.addEventListener("keydown", (e) => (keyboard[e.key] = true));
 window.addEventListener("keyup", (e) => (keyboard[e.key] = false));
 
 function draw() {
+  ctx.clearRect(0, 0, 500, 400);
+
   if (socket.readyState === 1) {
-    ctx.clearRect(0, 0, 500, 400);
     drawFruit();
-    drawPlayer();
+    drawPlayers();
     keyboardInput();
+    handleStats();
   }
+
+  requestAnimationFrame(draw);
 }
 
-function drawPlayer() {
-  ctx.fillStyle = "orange";
-  ctx.fillRect(playerPosition.x, playerPosition.y, 20, 20);
+function drawPlayers() {
+  for (const id in players) {
+    ctx.fillStyle = "orange";
+    ctx.fillRect(players[id].x, players[id].y, 20, 20);
+  }
 }
 
 function drawFruit() {
   ctx.fillStyle = "green";
-  ctx.fillRect(
-    fruitPositon.x,
-    fruitPositon.y,
-    fruitSize.with,
-    fruitSize.height
-  );
+  ctx.fillRect(fruit.x, fruit.y, fruitSize.width, fruitSize.height);
 }
 
 function keyboardInput() {
-  if (keyboard.ArrowUp) {
-    playerPosition.y -= 1;
-  } else if (keyboard.ArrowDown) {
-    playerPosition.y += 1;
-  } else if (keyboard.ArrowLeft) {
-    playerPosition.x -= 1;
-  } else if (keyboard.ArrowRight) {
-    playerPosition.x += 1;
+  if (!myPosition) return;
+
+  let oldX = myPosition.x;
+  let oldY = myPosition.y;
+
+  if (keyboard.ArrowUp) myPosition.y -= 2;
+  if (keyboard.ArrowDown) myPosition.y += 2;
+  if (keyboard.ArrowLeft) myPosition.x -= 2;
+  if (keyboard.ArrowRight) myPosition.x += 2;
+
+  if (oldX !== myPosition.x || oldY !== myPosition.y) {
+    socket.send(
+      JSON.stringify({
+        type: "move",
+        playerId,
+        x: myPosition.x,
+        y: myPosition.y,
+      })
+    );
   }
-
-  socket.send(JSON.stringify(playerPosition));
 }
 
-function handleStats(data) {
-  console.log(data);
-  player.innerHTML = data.playerId;
-  points.innerHTML = data.points;
+function handleStats() {
+  if (!players) return;
+
+  stats.innerHTML = "";
+
+  for (const id in players) {
+    const div = document.createElement("div");
+    div.textContent = `${id}  ${players[id].points} pts`;
+    stats.appendChild(div);
+  }
 }
 
-setInterval(draw, 10);
+requestAnimationFrame(draw);
