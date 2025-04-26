@@ -2,10 +2,10 @@ import { WebSocketServer } from "ws";
 import { nanoid } from "nanoid";
 
 const wss = new WebSocketServer({ port: 8080 });
+let fruitPosition;
 
 wss.on("connection", (ws) => {
   let canvasSize = { width: 0, height: 0 };
-  let fruitPosition;
   let playerId = nanoid();
   let points = 0;
   let playerPosition = { type: "playerPosition", x: 250, y: 200 };
