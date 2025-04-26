@@ -61,7 +61,17 @@ wss.on("connection", (ws) => {
     if (isColliding) {
       players[playerId].points++;
       fruitPosition = randomFruit();
+
+      broadcastFruit();
     }
+  }
+
+  function broadcastFruit() {
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(fruitPosition));
+      }
+    });
   }
 
   ws.on("close", () => {
