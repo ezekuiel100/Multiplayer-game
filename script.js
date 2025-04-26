@@ -65,12 +65,14 @@ function draw() {
 
 function drawPlayers() {
   for (const id in players) {
-    ctx.fillStyle = "orange";
+    ctx.fillStyle = id === playerId ? "lightgray" : "orange";
     ctx.fillRect(players[id].x, players[id].y, 20, 20);
   }
 }
 
 function drawFruit() {
+  if (!fruit) return;
+
   ctx.fillStyle = "green";
   ctx.fillRect(fruit.x, fruit.y, fruitSize.width, fruitSize.height);
 }
